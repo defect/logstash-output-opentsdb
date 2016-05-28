@@ -48,17 +48,14 @@ class LogStash::Outputs::Opentsdb < LogStash::Outputs::Base
     end
   end # def connect
 
-  public
-  def receive(event)
-    
-
+  def send_single_metric metric, event
     # Opentsdb message format: put metric timestamp value tagname=tagvalue tag2=value2\n
 
     # Catch exceptions like ECONNRESET and friends, reconnect on failure.
     begin
-      name = metrics[0]
-      value = metrics[1]
-      tags = metrics[2..-1]
+      name = metric[0]
+      value = metric[1]
+      tags = metric[2..-1]
 
       # The first part of the message
       message = ['put',
@@ -93,5 +90,13 @@ class LogStash::Outputs::Opentsdb < LogStash::Outputs::Base
       # TODO(sissel): Make 'resend on failure' tunable; sometimes it's OK to
       # drop metrics.
     end # @metrics.each
+  end # send_single_metric
+
+  public
+  def receive(event)
+    case metrics.first
+    when String
+      send_single_metric metrics, event
+    end
   end # def receive
 end # class LogStash::Outputs::Opentsdb
