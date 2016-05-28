@@ -92,11 +92,19 @@ class LogStash::Outputs::Opentsdb < LogStash::Outputs::Base
     end # @metrics.each
   end # send_single_metric
 
+  def send_multi_metrics metrics, event
+    metrics.each { |metric|
+      send_single_metric metric, event
+    }
+  end # send_multi_metrics
+
   public
   def receive(event)
     case metrics.first
     when String
       send_single_metric metrics, event
+    when Array
+      send_multi_metrics metrics, event
     end
   end # def receive
 end # class LogStash::Outputs::Opentsdb
